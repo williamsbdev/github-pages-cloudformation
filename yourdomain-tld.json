@@ -1,0 +1,226 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "yourdomain.tld template",
+  "Parameters": {
+    "DomainName": {
+      "Type": "String",
+      "Default": "yourdomain.tld"
+    },
+    "CloudFrontServiceHostedZoneId": {
+      "Type": "String",
+      "Default": "Z2FDTNDATAQYW2"
+    },
+    "AcmArn": {
+      "Type": "String",
+      "Default": "your-acm-arn"
+    },
+    "OriginAccessIdentity": {
+      "Type": "String",
+      "Default": "your-origin-access-id"
+    },
+    "Region": {
+      "Type": "String",
+      "Default": "us-west-2"
+    }
+  },
+  "Resources": {
+    "HostedZone": {
+      "Type": "AWS::Route53::HostedZone",
+      "Properties": {
+        "HostedZoneConfig": {
+          "Comment": {
+            "Fn::Join": [
+              " ",
+              [
+                { "Ref": "DomainName" },
+                "DNS records"
+              ]
+            ]
+          }
+        },
+        "Name": { "Ref": "DomainName" }
+      }
+    },
+    "ARecord": {
+      "Type": "AWS::Route53::RecordSet",
+      "Properties": {
+        "AliasTarget": {
+          "DNSName": { "Fn::GetAtt": ["CloudFront", "DomainName"] },
+          "HostedZoneId": { "Ref": "CloudFrontServiceHostedZoneId" }
+        },
+        "HostedZoneId": {
+          "Ref": "HostedZone"
+        },
+        "Name": {
+          "Fn::Join": [
+            "",
+            [
+              { "Ref": "DomainName" },
+              "."
+            ]
+          ]
+        },
+        "Type": "A"
+      }
+    },
+    "WWWCName": {
+      "Type": "AWS::Route53::RecordSet",
+      "Properties": {
+        "HostedZoneId": {
+          "Ref": "HostedZone"
+        },
+        "Name": {
+          "Fn::Join": [
+            "",
+            [
+              "www.",
+              { "Ref": "DomainName" },
+              "."
+            ]
+          ]
+        },
+        "TTL": "900",
+        "Type": "CNAME",
+        "ResourceRecords": [
+          { "Ref": "DomainName" }
+        ]
+      }
+    },
+    "S3Bucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": { "Ref": "DomainName" },
+        "WebsiteConfiguration": {
+          "IndexDocument": "index.html"
+        }
+      }
+    },
+    "S3BucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": { "Ref": "DomainName" },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Id": "PolicyForCloudFrontPrivateContent",
+          "Statement": [
+            {
+              "Sid": "Grant a CloudFront Origin Identity access to support private content",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Condition": {
+                "IpAddress": {
+                  "aws:SourceIp": [
+                    "13.32.0.0/15",
+                    "13.54.63.128/26",
+                    "34.195.252.0/24",
+                    "35.162.63.192/26",
+                    "52.15.127.128/26",
+                    "52.46.0.0/18",
+                    "52.52.191.128/26",
+                    "52.57.254.0/24",
+                    "52.66.194.128/26",
+                    "52.78.247.128/26",
+                    "52.84.0.0/15",
+                    "52.199.127.192/26",
+                    "52.212.248.0/26",
+                    "52.220.191.0/26",
+                    "52.222.128.0/17",
+                    "54.182.0.0/16",
+                    "54.192.0.0/16",
+                    "54.230.0.0/16",
+                    "54.233.255.128/26",
+                    "54.239.128.0/18",
+                    "54.239.192.0/19",
+                    "54.240.128.0/18",
+                    "204.246.164.0/22",
+                    "204.246.168.0/22",
+                    "204.246.174.0/23",
+                    "204.246.176.0/20",
+                    "205.251.192.0/19",
+                    "205.251.249.0/24",
+                    "205.251.250.0/23",
+                    "205.251.252.0/23",
+                    "205.251.254.0/24",
+                    "216.137.32.0/19"
+                  ]
+                }
+              },
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    { "Ref": "DomainName" },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    "CloudFront": {
+      "Type": "AWS::CloudFront::Distribution",
+      "Properties": {
+        "DistributionConfig": {
+          "Aliases": [
+            { "Ref": "DomainName" },
+            {
+              "Fn::Join": [
+                "",
+                [
+                  "www.",
+                  { "Ref": "DomainName" }
+                ]
+              ]
+            }
+          ],
+          "Comment": {
+            "Fn::Join": [
+              "",
+              [
+                "CloudFront for ",
+                { "Ref": "DomainName" }
+              ]
+            ]
+          },
+          "DefaultCacheBehavior": {
+            "ForwardedValues": {
+              "QueryString": false
+            },
+            "TargetOriginId": { "Ref": "DomainName" },
+            "ViewerProtocolPolicy": "redirect-to-https"
+          },
+          "Enabled": true,
+          "Origins": [
+            {
+              "CustomOriginConfig" : {
+                "OriginProtocolPolicy": "http-only"
+              },
+              "DomainName": {
+                "Fn::Join": [
+                  "",
+                  [
+                    { "Ref": "S3Bucket" },
+                    ".s3-website-",
+                    { "Ref": "Region" },
+                    ".amazonaws.com"
+                  ]
+                ]
+              },
+              "Id": { "Ref": "DomainName" }
+            }
+          ],
+          "PriceClass": "PriceClass_100",
+          "ViewerCertificate": {
+            "AcmCertificateArn": { "Ref": "AcmArn" },
+            "MinimumProtocolVersion": "TLSv1",
+            "SslSupportMethod": "sni-only"
+          }
+        }
+      }
+    }
+  }
+}
