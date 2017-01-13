@@ -14,10 +14,6 @@
       "Type": "String",
       "Default": "your-acm-arn"
     },
-    "OriginAccessIdentity": {
-      "Type": "String",
-      "Default": "your-origin-access-id"
-    },
     "Region": {
       "Type": "String",
       "Default": "us-west-2"
@@ -104,7 +100,7 @@
           "Id": "PolicyForCloudFrontPrivateContent",
           "Statement": [
             {
-              "Sid": "Grant a CloudFront Origin Identity access to support private content",
+              "Sid": "Grant CloudFront IPs access to the Bucket",
               "Effect": "Allow",
               "Principal": "*",
               "Action": "s3:GetObject",
