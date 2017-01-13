@@ -7,7 +7,14 @@ buckets, and CloudFront resources needed for each domain.
 ## Important
 
 Replace all "yourdomain.tld" or "yourdomain-tld" with your custom domain (ie
-williamsbdev.com).
+williamsbdev.com). Also update the default values for the parameters in the
+`yourdomain-tld.json` to reflect the values you desire (DomainName, AcmArn,
+Region).
+
+## CloudFront IP ranges
+
+This template will get out of date with the CloudFront IP ranges so I have
+included a script that will gather the latest CloudFront IP ranges at the time.
 
 ### yourdomain-tld stack creation
 

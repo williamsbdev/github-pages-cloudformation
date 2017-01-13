@@ -6,10 +6,6 @@
       "Type": "String",
       "Default": "yourdomain.tld"
     },
-    "CloudFrontServiceHostedZoneId": {
-      "Type": "String",
-      "Default": "Z2FDTNDATAQYW2"
-    },
     "AcmArn": {
       "Type": "String",
       "Default": "your-acm-arn"
@@ -42,7 +38,7 @@
       "Properties": {
         "AliasTarget": {
           "DNSName": { "Fn::GetAtt": ["CloudFront", "DomainName"] },
-          "HostedZoneId": { "Ref": "CloudFrontServiceHostedZoneId" }
+          "HostedZoneId": "Z2FDTNDATAQYW2"
         },
         "HostedZoneId": {
           "Ref": "HostedZone"
