@@ -18,4 +18,4 @@ included a script that will gather the latest CloudFront IP ranges at the time.
 
 ### yourdomain-tld stack creation
 
-`aws cloudformation update-stack --stackname yourdomain-tld --template-body file://yourdomain-tld.json`
+`aws cloudformation create-stack --stack-name yourdomain-tld --template-body file://yourdomain-tld.json`
